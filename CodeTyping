@@ -1,0 +1,66 @@
+// ======================================================
+// EXTRACTOR V6 - "SURGERY" (DELETES THE LAST CHARACTER BEFORE ENTER)
+// ======================================================
+(function() {
+    const tokens = Array.from(document.querySelectorAll('.token span'));
+    
+    let fullText = "";
+    let enterCount = 0;
+    let spacesDeleted = 0;
+
+    console.log("Scanning and fixing...");
+
+    tokens.forEach((el) => {
+        // --- 1. ENTER DETECTION ---
+        if (el.classList.contains('_enter')) {
+            // HERE IS THE FIX:
+            // Before adding the Enter, we delete the last character added
+            // (which, according to your observation, is the extra space).
+            if (fullText.length > 0) {
+                fullText = fullText.slice(0, -1); // Deletes 1 character backward
+                spacesDeleted++;
+            }
+
+            fullText += "\r\n"; // Now we insert a clean Enter
+            enterCount++;
+            return; 
+        }
+
+        // --- 2. NORMAL TEXT ---
+        if (el.classList.contains('token_unit')) {
+            let char = el.textContent;
+            
+            // Hard space cleanup
+            if (char.charCodeAt(0) === 160) char = ' ';
+            
+            if (char.length > 0) {
+                fullText += char.charAt(0);
+            }
+        }
+    });
+
+    // --- FORCED COPY ---
+    const textArea = document.createElement("textarea");
+    textArea.value = fullText;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        console.log("========================================");
+        console.log("%cTEXT FIXED AND COPIED", "color: lime; font-size: 18px; font-weight: bold;");
+        console.log(`Enters detected: ${enterCount}`);
+        console.log(`Extra spaces removed: ${spacesDeleted}`);
+        console.log("========================================");
+    } catch (err) {
+        console.error('Copy error', err);
+    }
+    document.body.removeChild(textArea);
+    
+    // Preview to ensure no characters were accidentally removed
+    console.log("Preview of the first 50 characters:");
+    console.log(fullText.substring(0, 50).replace(/\n/g, "[ENTER]\n"));
+})();
